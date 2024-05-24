@@ -1,19 +1,58 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Página de Reservas</title>
-    <!-- Aquí puedes enlazar tu archivo CSS -->
+    <title>Reservas</title>
+    <link rel="stylesheet" type="text/css" href="styles_reservas.css" />
+    <script src="script_reservas.js" defer></script>
 </head>
 <body>
-    <h1>Reserva de Automóviles</h1>
-    <div class="container">
-        <!-- Aquí puedes agregar tantas tarjetas de automóviles como necesites -->
-        <div class="car-card">
-            <img src="ruta-a-la-imagen-del-automovil" alt="Imagen del Automóvil">
-            <h2>Nombre del Automóvil</h2>
-            <p>Descripción del Automóvil</p>
-            <button>Reservar</button>
+    <header>
+        <h1 class="titulo">Nombre de la Página</h1>
+        <button class="cerrar-sesion" onclick="window.location.href='index.html';">Cerrar Sesión</button>
+    </header>
+    <h2 class="saludo">Hola, Persona</h2>
+    <div class="sidebar">
+        <button class="botonReservar">Reservar</button>
+        <button class="botonVerReservas">Ver Reservas</button>
+        <button class="botonPrecioTotal">Precio Total</button>
+    </div>
+    <div class="busqueda">
+        <select class="tipo-busqueda">
+            <option value="tipo">Tipo</option>
+            <option value="color">Color</option>
+            <option value="modelo">Modelo</option>
+            <option value="marca">Marca</option>
+            <option value="precio">Precio</option>
+        </select>
+        <input type="text" class="campo-busqueda" placeholder="Ingresa tu búsqueda">
+        <button class="boton-busqueda">Buscar</button>
+    </div>
+    
+    <div class="reserva">
+        <img class="imagen-vehiculo" src="ruta-a-la-imagen-del-vehiculo" alt="Imagen del Vehículo">
+        <div class="info-vehiculo">
+            <h2 class="nombre-vehiculo">Nombre del Vehículo</h2>
+            <p class="descripcion-vehiculo">Descripción del Vehículo</p>
+            <p class="precio-vehiculo">Precio del Vehículo</p>
+        </div>
+        <button class="boton-quitar">Quitar Reservación</button>
+    </div>
+    <div class="precio-total">
+        <!-- Aquí puedes agregar tantas líneas de precio como necesites -->
+        <div class="linea-precio">
+            <span class="nombre-vehiculo">Nombre del Vehículo</span>
+            <span class="puntos">............</span>
+            <span class="precio-vehiculo">Precio del Vehículo</span>
+        </div>
+        <!-- Aquí va el costo total y el botón de pagar -->
+        <div class="total">
+            <span class="texto-total">Costo Total:</span>
+            <span class="monto-total">Monto Total</span>
+            <button class="boton-pagar" onclick="window.location.href='facturacion.html';">Pagar</button>
         </div>
     </div>
+    
+    
+
 </body>
 </html>
