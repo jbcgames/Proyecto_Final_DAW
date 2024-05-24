@@ -18,42 +18,48 @@ body {
     background-color: #fff;
 }
 
-.User, .Password {
+.Nombre, .Apellido, .FechaNacimiento, .NombreUsuario, .PasswordContainer {
     margin-bottom: 10px;
+}
+
+.PasswordContainer {
+    display: flex;
+    justify-content: space-between;
+}
+
+.Password, .ConfirmPassword {
+    width: 48%;
+}
+
+.Password, .ConfirmPassword, .Nombre, .Apellido, .FechaNacimiento, .NombreUsuario {
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 5px;
 }
 
-.Ingresar {
+.Registrar {
     padding: 10px;
     border: none;
-    border-radius: 50px;
+    border-radius: 5px;
     background-color: #007BFF;
     color: #fff;
     cursor: pointer;
-    font-weight: bold;
-    font-size: 20px;
 }
 
-.Ingresar img {
-    margin-right: 0px;
-    margin-bottom: -2px;
-}
-
-.Registrar {
-    margin-left: auto;
-    margin-right: auto;
-
-    width: 50%;
-    margin-top: 10px;
+.Volver {
+    display: flex;
+    align-items: center;
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    padding: 10px;
     border: none;
-    border-radius: 50px;
-    background-color: #09aa2c;
-    color: #ffffff;
+    border-radius: 5px;
+    background-color: #007BFF;
+    color: #fff;
     cursor: pointer;
 }
-.Registrar p{
-    font-weight: bold;
-    font-size: 13px;
+
+.Volver img {
+    margin-right: 5px;
 }
