@@ -53,23 +53,46 @@ registerButton.addEventListener('click', function() {
         return;
     }
 
-    var data = {
-        nombre: nombre,
-        apellido: apellido,
-        fechaNacimiento: fechaNacimiento,
-        nombreUsuario: nombreUsuario,
-        password: password
-    };
-    console.log(data)
-    fetch('http://localhost:8080/Registro', {
-        method: 'POST',
+    // Verificar si el nombre de usuario ya existe
+    fetch(`http://localhost:8080/Usuario?nombreUsuario=${nombreUsuario}`, {
+        method: 'GET',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data)
     })
-    .then(response => response.json())
-    .then(data => console.log(data))
+    .then(response => {
+        if (response.status === 404) {
+            // Si el nombre de usuario no existe, proceder con la solicitud POST
+            var data = {
+                nombre: nombre,
+                apellido: apellido,
+                fechaNacimiento: fechaNacimiento,
+                nombreUsuario: nombreUsuario,
+                password: password
+            };
+            console.log(data)
+            fetch('http://localhost:8080/Registro', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => console.log(data))
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+            alert('Registro Creado Exitosamente')
+            window.location.href = 'index.html';
+        } else if (response.ok) {
+            // Si la respuesta es exitosa, eso significa que el nombre de usuario ya existe
+            alert('El nombre de usuario ya existe');
+        } else {
+            // Manejar otros códigos de estado
+            console.error('Error:', response.status);
+        }
+    })
     .catch((error) => {
         console.error('Error:', error);
     });
