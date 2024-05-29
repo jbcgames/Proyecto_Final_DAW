@@ -17,6 +17,16 @@ type Usuario struct {
 	NombreUsuario   string `json:"nombreUsuario"`
 	Password        string `json:"password"`
 }
+type Reserva struct {
+	ID                  int    `json:"id"`
+	Usuario             string `json:"usuario"`
+	AutoID              int    `json:"auto_id"`
+	Seguros             bool   `json:"seguros"`
+	AsistenciaCarretera bool   `json:"asistencia_carretera"`
+	SillaBebes          bool   `json:"silla_bebes"`
+	EquipoLujo          bool   `json:"equipo_lujo"`
+	PrecioFinal         int    `json:"precio_final"`
+}
 
 type Auto struct {
 	ID          int    `json:"id"`
@@ -170,6 +180,64 @@ func main() {
 
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(autos)
+		default:
+			// Manejar otros métodos
+			http.Error(w, "Método no soportado", http.StatusMethodNotAllowed)
+		}
+	})
+	http.HandleFunc("/Reservas", func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+
+		if req.Method == http.MethodOptions {
+			return
+		}
+
+		switch req.Method {
+		case http.MethodGet:
+			// Manejar método GET
+			usuario := req.URL.Query().Get("usuario")
+			if usuario == "" {
+				http.Error(w, "Usuario no proporcionado", http.StatusBadRequest)
+				return
+			}
+
+			rows, err := db.Query("SELECT * FROM reservas WHERE usuario = $1", usuario)
+			if err != nil {
+				http.Error(w, "Error al consultar la base de datos", http.StatusInternalServerError)
+				return
+			}
+			defer rows.Close()
+
+			var reservas []Reserva
+			for rows.Next() {
+				var r Reserva
+				err = rows.Scan(&r.ID, &r.Usuario, &r.AutoID, &r.Seguros, &r.AsistenciaCarretera, &r.SillaBebes, &r.EquipoLujo, &r.PrecioFinal)
+				if err != nil {
+					http.Error(w, "Error al escanear la fila", http.StatusInternalServerError)
+					return
+				}
+				reservas = append(reservas, r)
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(reservas)
+		case http.MethodPost:
+			// Manejar método POST
+			var r Reserva
+			err := json.NewDecoder(req.Body).Decode(&r)
+			if err != nil {
+				http.Error(w, "Error al leer el cuerpo de la solicitud", http.StatusInternalServerError)
+				return
+			}
+			_, err = db.Exec("INSERT INTO reservas (usuario, auto_id, seguros, asistencia_carretera, silla_bebes, equipo_lujo, precio_final) VALUES ($1, $2, $3, $4, $5, $6, $7)", r.Usuario, r.AutoID, r.Seguros, r.AsistenciaCarretera, r.SillaBebes, r.EquipoLujo, r.PrecioFinal)
+			if err != nil {
+				http.Error(w, "Error al insertar datos en la base de datos", http.StatusInternalServerError)
+				return
+			}
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(r)
 		default:
 			// Manejar otros métodos
 			http.Error(w, "Método no soportado", http.StatusMethodNotAllowed)

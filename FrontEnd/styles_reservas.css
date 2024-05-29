@@ -50,6 +50,7 @@ header {
     border: 1px solid #ccc;
     border-radius: 5px;
     margin-right: 10px;
+    margin-bottom: 10px;
 }
 .tipo-busqueda{
     width: 100px;
@@ -105,7 +106,7 @@ header {
 
 .imagen-vehiculo {
     width: 100px;
-    height: 100px;
+    height: 70px;
     border-radius: 5px;
 }
 
@@ -163,9 +164,72 @@ header {
 }
 .boton-agregar {
     padding: 10px;
+    width: 100px;
     border: none;
     border-radius: 5px;
     background-color: #007BFF;
     color: #fff;
     cursor: pointer;
+}
+.reserva-sup {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    width: 60%;
+    height: 200px;
+    margin-bottom: 20px;
+    padding: 20px;
+    box-shadow: 3px 3px 3px rgb(136, 133, 133);
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: #fff;
+}
+
+.seccion-izquierda, .seccion-derecha {
+    display: flex;
+    flex-direction: column;
+    width: 50%;
+}
+
+.contenedor-opciones {
+    display: flex;
+    margin-top: 10px;
+    flex-direction: column;
+    width: 100%;
+}
+.contenedor-opciones label{
+    margin-top: -20px;
+}
+.contenedor-opciones input[type="checkbox"] {
+    margin-right: -370px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+.boton-quitar{
+    margin-top: 20px;
+}
+.seccion-izquierda{
+    margin-left: 50px;
+    
+}
+.contenedor-opciones label {
+    display: flex;
+    align-items: center;
+}
+
+.boton-extra {
+    background-color: #36cef4;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    line-height: 0;
 }

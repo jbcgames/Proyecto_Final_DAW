@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
     nombre VARCHAR(50),
     apellido VARCHAR(50),
     fecha_nacimiento DATE,
-    nombre_usuario VARCHAR(50),
+    nombre_usuario VARCHAR(50) UNIQUE,
     password VARCHAR(50)
 );
 
@@ -22,13 +22,16 @@ CREATE TABLE IF NOT EXISTS autos (
 
 CREATE TABLE IF NOT EXISTS reservas (
     id SERIAL PRIMARY KEY,
-    id_usuario INT,
-    id_carro INT,
-    fecha_inicio DATE,
-    fecha_fin DATE,
-    FOREIGN KEY (id_usuario) REFERENCES usuarios (id),
-    FOREIGN KEY (id_carro) REFERENCES autos (id)
+    usuario VARCHAR(50) REFERENCES usuarios(nombre_usuario),
+    auto_id INT REFERENCES autos(id),
+    seguros BOOLEAN,
+    asistencia_carretera BOOLEAN,
+    silla_bebes BOOLEAN,
+    equipo_lujo BOOLEAN,
+    precio_final INT
 );
+
+
 
 INSERT INTO autos (nombre, tipo, color, modelo, marca, transmision, motor, precio, imagen_link) VALUES
 ('Mustang GT', 'Coupe', 'Rojo', '2020', 'Ford', 'Manual', 'V8', 55000,'https://build.ford.com/dig/Ford/Mustang/2024/HD-TILE/Image%5B%7CFord%7CMustang%7C2024%7C1%7C1.%7C300A.P8C..PHY..88D.89W.~2WD00_BCMAB.AC--C.13R.COU.BSHEH.BYBBR.CJPAA.LTS.51W.64T.TA6.RWD.45D.99F.FS--A.HLLAD.58V.IDBAD.SY4.44X.GT.YZTAB.CLO.%5D/EXT/1/vehicle.png'),
