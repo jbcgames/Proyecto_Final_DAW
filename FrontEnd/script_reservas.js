@@ -20,26 +20,26 @@ fetch(`http://localhost:8080/Usuario?nombreUsuario=${nombreUsuario}`, {
     )
 
 var seccionReservar = document.querySelector('.busqueda');
-var seccionVerReservas = document.querySelector('.reserva');
+var seccionReservas2 = document.querySelector('.reserva');
 var seccionPrecioTotal = document.querySelector('.precio-total');
+var seccionVerReservas = document.querySelector('.consultar-reserva');
 
 var botonReservar = document.querySelector('.botonReservar');
 var botonVerReservas = document.querySelector('.botonVerReservas');
 var botonPrecioTotal = document.querySelector('.botonPrecioTotal');
 var botonBusqueda = document.querySelector('.boton-busqueda');
-var campoBusqueda =document.querySelector('.campo-busqueda');
-
-
+var campoBusqueda = document.querySelector('.campo-busqueda');
 
 seccionReservar.style.display = 'block';
-seccionVerReservas.style.display = 'none';
+seccionReservas2.style.display = 'none';
 seccionPrecioTotal.style.display = 'none';
-
+seccionVerReservas.style.display = 'none';
 // Luego, agrega controladores de eventos a los botones
 botonReservar.addEventListener("click", () => {
     seccionReservar.style.display = 'block';
-    seccionVerReservas.style.display = 'none';
+    seccionReservas2.style.display = 'none';
     seccionPrecioTotal.style.display = 'none';
+    seccionVerReservas.style.display = 'none';
 });
 
 botonVerReservas.addEventListener("click", () => {
@@ -49,24 +49,118 @@ botonVerReservas.addEventListener("click", () => {
     if (divAnterior) {
         divAnterior.remove();
     }
+    var reservas = document.querySelectorAll('.reserva1');
+    reservas.forEach(reserva => reserva.remove());
     seccionReservar.style.display = 'none';
     seccionVerReservas.style.display = 'block';
+    seccionReservas2.style.display = 'none';
     seccionPrecioTotal.style.display = 'none';
+
+    fetch(`http://localhost:8080/Reservas?usuario=${nombreUsuario}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        data.forEach(reserva => {
+            fetch(`http://localhost:8080/Autos?id=${reserva.auto_id}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(autoData => {
+                var auto = autoData[0]; // Asumiendo que autoData es un array y estamos interesados en el primer elemento
+                var reservaDiv = document.createElement('div');
+                reservaDiv.className = 'reserva1';
+
+                var infoReserva = document.createElement('div');
+                infoReserva.className = 'info-vehiculo';
+
+                var imagenVehiculo = document.createElement('img');
+                imagenVehiculo.className = 'imagen-vehiculo';
+                imagenVehiculo.src = auto.imagen_link;
+                imagenVehiculo.alt = 'Imagen del Vehículo';
+                reservaDiv.appendChild(imagenVehiculo);
+
+                var autoNombreReserva = document.createElement('p');
+                autoNombreReserva.className = 'nombre-vehiculo';
+                autoNombreReserva.textContent = `Nombre del Auto: ${auto.nombre}`; // Aquí se cambió el ID del auto por el nombre del auto
+                infoReserva.appendChild(autoNombreReserva);
+
+                var segurosReserva = document.createElement('p');
+                segurosReserva.className = 'caracteristicas-vehiculo';
+                segurosReserva.textContent = `Seguros: ${reserva.seguros ? 'Sí' : 'No'}`;
+                infoReserva.appendChild(segurosReserva);
+
+                var asistenciaCarreteraReserva = document.createElement('p');
+                asistenciaCarreteraReserva.className = 'caracteristicas-vehiculo';
+                asistenciaCarreteraReserva.textContent = `Asistencia en Carretera: ${reserva.asistencia_carretera ? 'Sí' : 'No'}`;
+                infoReserva.appendChild(asistenciaCarreteraReserva);
+
+                var sillaBebesReserva = document.createElement('p');
+                sillaBebesReserva.className = 'caracteristicas-vehiculo';
+                sillaBebesReserva.textContent = `Silla para Bebés: ${reserva.silla_bebes ? 'Sí' : 'No'}`;
+                infoReserva.appendChild(sillaBebesReserva);
+
+                var equipoLujoReserva = document.createElement('p');
+                equipoLujoReserva.className = 'caracteristicas-vehiculo';
+                equipoLujoReserva.textContent = `Equipo de Lujo: ${reserva.equipo_lujo ? 'Sí' : 'No'}`;
+                infoReserva.appendChild(equipoLujoReserva);
+
+                var precioFinalReserva = document.createElement('p');
+                precioFinalReserva.className = 'precio-vehiculo';
+                precioFinalReserva.textContent = `Precio Final: $${reserva.precio_final}`;
+                infoReserva.appendChild(precioFinalReserva);
+
+                var botonEliminar = document.createElement('button');
+                botonEliminar.className = 'boton-quitar';
+                botonEliminar.textContent = 'Eliminar Reserva';
+                botonEliminar.addEventListener('click', () => {
+                    fetch(`http://localhost:8080/Reservas?id=${reserva.id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            reservaDiv.remove();
+                            alert('Reserva eliminada exitosamente');
+                        } else {
+                            alert('Error al eliminar la reserva');
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('Error:', error);
+                    });
+                });
+
+                reservaDiv.appendChild(infoReserva);
+                reservaDiv.appendChild(botonEliminar);
+                seccionVerReservas.appendChild(reservaDiv);
+            })
+            .catch((error) => {
+                alert('No Tienes Reservas')
+            });
+        });
+    })
+    .catch((error) => {
+        seccionReservar.style.display = 'block';
+        seccionReservas2.style.display = 'none';
+        seccionPrecioTotal.style.display = 'none';
+        seccionVerReservas.style.display = 'none';
+        alert('No Tienes Reservas')
+        
+    });
 });
 
-botonPrecioTotal.addEventListener("click", () => {
-    var reservas = document.querySelectorAll('.reserva');
-    reservas.forEach(reserva => reserva.remove());
-    var divAnterior = document.querySelector('.reserva-sup');
-    if (divAnterior) {
-        divAnterior.remove();
-    }
-    seccionReservar.style.display = 'none';
-    seccionVerReservas.style.display = 'none';
-    seccionPrecioTotal.style.display = 'block';
-});
 
-botonBusqueda.addEventListener("click", ()=>{
+
+botonBusqueda.addEventListener("click", () => {
     var reservas = document.querySelectorAll('.reserva');
     reservas.forEach(reserva => reserva.remove());
     var divAnterior = document.querySelector('.reserva-sup');
@@ -87,8 +181,8 @@ botonBusqueda.addEventListener("click", ()=>{
     })
     .then(response => response.json())
     .then(data => {
-        if(data==null){
-            return
+        if (data == null) {
+            return;
         }
         data.forEach(auto => {
             var reservaDiv = document.createElement('div');
@@ -136,7 +230,7 @@ botonBusqueda.addEventListener("click", ()=>{
     .catch((error) => {
         console.error('Error:', error);
     });
-})
+});
 
 function tuFuncion(idAuto) {
     var url = `http://localhost:8080/Autos?id=${idAuto}`;
@@ -163,8 +257,6 @@ function tuFuncion(idAuto) {
         reserva.className = 'reserva-sup';
         reserva.style.zIndex = '1000';
 
-
-       
         var seccionIzquierda = document.createElement('div');
         seccionIzquierda.className = 'seccion-izquierda';
 
@@ -172,7 +264,6 @@ function tuFuncion(idAuto) {
         imagenVehiculo.className = 'imagen-vehiculo';
         imagenVehiculo.src = imagen;
         imagenVehiculo.alt = 'Imagen del Vehículo';
-        
 
         // Crear y añadir la información del vehículo
         var infoVehiculo = document.createElement('div');
@@ -187,9 +278,9 @@ function tuFuncion(idAuto) {
         var precioVehiculo = document.createElement('p');
         var TextoPrecio = document.createElement('p');
         precioVehiculo.className = 'precio-vehiculo';
-        TextoPrecio.className ='textoPrecio';
+        TextoPrecio.className = 'textoPrecio';
         precioVehiculo.textContent = precio;
-        TextoPrecio.textContent ="Precio Total"
+        TextoPrecio.textContent = "Precio Total";
         infoVehiculo.appendChild(TextoPrecio);
         infoVehiculo.appendChild(precioVehiculo);
 
@@ -203,6 +294,14 @@ function tuFuncion(idAuto) {
         var opciones = ['Seguros', 'Asistencia en carretera', 'Silla para bebés', 'Equipo de lujo'];
         var contenedorOpciones = document.createElement('div');
         contenedorOpciones.className = 'contenedor-opciones';
+
+        var estadoReserva = {
+            seguros: false,
+            asistenciaCarretera: false,
+            sillaBebes: false,
+            equipoLujo: false
+        };
+
         opciones.forEach(opcion => {
             var checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
@@ -217,11 +316,26 @@ function tuFuncion(idAuto) {
             // Agregar evento de escucha al checkbox
             checkbox.addEventListener('change', function() {
                 if (this.checked) {
-                    precio += 10000;
+                    precio =precio+precio*0.1;
                 } else {
-                    precio -= 10000;
+                    precio =precio-precio*0.1;
                 }
                 precioVehiculo.textContent = precio;
+
+                switch (opcion) {
+                    case 'Seguros':
+                        estadoReserva.seguros = this.checked;
+                        break;
+                    case 'Asistencia en carretera':
+                        estadoReserva.asistenciaCarretera = this.checked;
+                        break;
+                    case 'Silla para bebés':
+                        estadoReserva.sillaBebes = this.checked;
+                        break;
+                    case 'Equipo de lujo':
+                        estadoReserva.equipoLujo = this.checked;
+                        break;
+                }
             });
 
             contenedorOpciones.appendChild(checkbox);
@@ -232,19 +346,19 @@ function tuFuncion(idAuto) {
         // Crear y añadir el botón para quitar la reservación
         var botonQuitar = document.createElement('button');
         botonQuitar.className = 'boton-quitar';
-        botonQuitar.textContent = 'Conformar Reservación';
+        botonQuitar.textContent = 'Confirmar Reservación';
         seccionDerecha.appendChild(botonQuitar);
         botonQuitar.addEventListener('click', function() {
             const reserva = {
                 usuario: nombreUsuario,
                 auto_id: idAuto,
-                seguros: true,
-                asistencia_carretera: false,
-                silla_bebes: true,
-                equipo_lujo: false,
+                seguros: estadoReserva.seguros,
+                asistencia_carretera: estadoReserva.asistenciaCarretera,
+                silla_bebes: estadoReserva.sillaBebes,
+                equipo_lujo: estadoReserva.equipoLujo,
                 precio_final: precio
             };
-            
+
             fetch('http://localhost:8080/Reservas', {
                 method: 'POST',
                 headers: {
@@ -256,15 +370,18 @@ function tuFuncion(idAuto) {
             .then(data => console.log(data))
             .catch((error) => {
                 console.error('Error:', error);
-            });
-            
-            
+            })
+            alert('Reserva Agregada');
+            var divAnterior = document.querySelector('.reserva-sup');
+            if (divAnterior) {
+                divAnterior.remove();
+            }
         });
 
         reserva.appendChild(seccionDerecha);
 
-        // Añadir el div de reserva al cuerpo del documento
         document.body.appendChild(reserva);
+
     })
     .catch((error) => {
         console.error('Error:', error);

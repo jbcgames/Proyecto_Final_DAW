@@ -187,7 +187,7 @@ func main() {
 	})
 	http.HandleFunc("/Reservas", func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 
 		if req.Method == http.MethodOptions {
@@ -238,6 +238,20 @@ func main() {
 			}
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(r)
+		case http.MethodDelete:
+			// Manejar método DELETE
+			id := req.URL.Query().Get("id")
+			if id == "" {
+				http.Error(w, "ID no proporcionado", http.StatusBadRequest)
+				return
+			}
+
+			_, err := db.Exec("DELETE FROM reservas WHERE id = $1", id)
+			if err != nil {
+				http.Error(w, "Error al eliminar la fila en la base de datos", http.StatusInternalServerError)
+				return
+			}
+			w.WriteHeader(http.StatusNoContent)
 		default:
 			// Manejar otros métodos
 			http.Error(w, "Método no soportado", http.StatusMethodNotAllowed)
