@@ -34,12 +34,13 @@ seccionReservar.style.display = 'block';
 seccionReservas2.style.display = 'none';
 seccionPrecioTotal.style.display = 'none';
 seccionVerReservas.style.display = 'none';
-
+busquedaInicial();
 botonReservar.addEventListener("click", () => {
     seccionReservar.style.display = 'block';
     seccionReservas2.style.display = 'none';
     seccionPrecioTotal.style.display = 'none';
     seccionVerReservas.style.display = 'none';
+    busquedaInicial();
 });
 botonPrecioTotal.addEventListener("click", () => {
     seccionReservar.style.display = 'none';
@@ -130,7 +131,7 @@ function VerReservas(){
                 infoReserva.appendChild(precioFinalReserva);
 
                 var botonEliminar = document.createElement('button');
-                botonEliminar.className = 'boton-quitar';
+                botonEliminar.className = 'boton-quitar2';
                 botonEliminar.textContent = 'Eliminar Reserva';
                 botonEliminar.addEventListener('click', () => {
                     fetch(`http://localhost:8080/Reservas?id=${reserva.id}`, {
@@ -275,7 +276,93 @@ function mibotonBusqueda() {
     });
 }
 
+function busquedaInicial() {
+    var reservas = document.querySelectorAll('.reserva');
+    reservas.forEach(reserva => reserva.remove());
 
+    var divAnterior = document.querySelector('.reserva-sup');
+    if (divAnterior) {
+        divAnterior.remove();
+    }
+
+    var criterio = document.querySelector('.tipo-busqueda').value;
+    var valor = document.querySelector('.campo-busqueda').value;
+
+    valor = valor.toLowerCase().split(' ').map(function(palabra) {
+        return palabra.charAt(0).toUpperCase() + palabra.slice(1);
+    }).join(' ');
+
+    var url = `http://localhost:8080/Autos`;
+    console.log(url);
+
+
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+
+        if (data == null || data.length === 0) {
+            alert('No hay autos disponibles que cumplan con el criterio de búsqueda.');
+            return;
+        }
+        var autosDisponibles = data.filter(auto => auto.disponible);
+        if (autosDisponibles.length === 0) {
+            alert('No hay autos disponibles que cumplan con el criterio de búsqueda.');
+            return;
+        }
+
+
+        autosDisponibles.forEach(auto => {
+            var reservaDiv = document.createElement('div');
+            reservaDiv.className = 'reserva';
+
+            var imagenVehiculo = document.createElement('img');
+            imagenVehiculo.className = 'imagen-vehiculo';
+            imagenVehiculo.src = auto.imagen_link;
+            imagenVehiculo.alt = 'Imagen del Vehículo';
+            reservaDiv.appendChild(imagenVehiculo);
+
+            var infoVehiculo = document.createElement('div');
+            infoVehiculo.className = 'info-vehiculo';
+
+            var nombreVehiculo = document.createElement('h2');
+            nombreVehiculo.className = 'nombre-vehiculo';
+            nombreVehiculo.textContent = auto.nombre;
+            infoVehiculo.appendChild(nombreVehiculo);
+
+            var caracteristicasVehiculo = document.createElement('p');
+            caracteristicasVehiculo.className = 'caracteristicas-vehiculo';
+            caracteristicasVehiculo.textContent = `Tipo: ${auto.tipo}, Color: ${auto.color}, Modelo: ${auto.modelo}, Marca: ${auto.marca}, Transmisión: ${auto.transmision}, Motor: ${auto.motor}`;
+            infoVehiculo.appendChild(caracteristicasVehiculo);
+
+            var precioVehiculo = document.createElement('p');
+            precioVehiculo.className = 'precio-vehiculo';
+            precioVehiculo.textContent = `Precio: $${auto.precio}`;
+            infoVehiculo.appendChild(precioVehiculo);
+
+            reservaDiv.appendChild(infoVehiculo);
+
+            var botonAgregar = document.createElement('button');
+            botonAgregar.className = 'boton-agregar';
+            botonAgregar.textContent = 'Agregar Reservación';
+            botonAgregar.addEventListener('click', function() {
+                var reservas = document.querySelectorAll('.reserva');
+                reservas.forEach(reserva => reserva.remove());
+                tuFuncion(auto.id);
+            });
+            reservaDiv.appendChild(botonAgregar);
+
+            document.body.appendChild(reservaDiv);
+        });
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+    });
+}
 function obtenerNombreCarro(autoId) {
     return fetch(`http://localhost:8080/Autos?id=${autoId}`)
         .then(response => response.json())
@@ -372,8 +459,18 @@ function tuFuncion(idAuto) {
         var nombre = data[0].nombre;
         var imagen = data[0].imagen_link;
         var precio = data[0].precio;
-
-
+        var botonCancelar = document.createElement('button');
+        botonCancelar.className = 'boton-cancelar';
+        botonCancelar.textContent = 'Cancelar Reserva';
+        botonCancelar.addEventListener('click', function() {
+            alert('Reserva Cancelada');
+            busquedaInicial();
+            var divReserva = document.querySelector('.reserva-sup');
+            if (divReserva) {
+                divReserva.remove();
+            }
+        });
+        
         var reserva = document.createElement('div');
         reserva.className = 'reserva-sup';
         reserva.style.zIndex = '1000';
@@ -401,7 +498,7 @@ function tuFuncion(idAuto) {
 
         var seccionDerecha = document.createElement('div');
         seccionDerecha.className = 'seccion-derecha';
-
+        seccionIzquierda.appendChild(botonCancelar);
 
         var opciones = ['Seguros', 'Asistencia en carretera', 'Silla para bebés', 'Equipo de lujo'];
         var contenedorOpciones = document.createElement('div');
@@ -487,7 +584,7 @@ function tuFuncion(idAuto) {
                     divAnterior.remove();
                 }
                 alert('Reserva Agregada');
-                mibotonBusqueda(); 
+                busquedaInicial();
             })
             .catch((error) => {
                 console.error('Error:', error);

@@ -131,13 +131,21 @@ header {
     margin-bottom: 10px;
 }
 
-.boton-quitar, .botonDescargar{
+.boton-quitar2, .botonDescargar, .boton-cancelar, .boton-quitar{
     padding: 10px;
     border: none;
     border-radius: 5px;
     background-color: #007BFF;
     color: #fff;
     cursor: pointer;
+}
+.boton-quitar{
+    width: 90%;
+}
+.boton-cancelar{
+    background-color: red;
+    margin-top: 17.6px;
+    width: 90%;
 }
 .precio-total {
     display: flex;
