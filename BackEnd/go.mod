@@ -1,4 +1,4 @@
-module github.com/miguel/proyecto
+module github.com/miguel/poyecto
 
 go 1.22.3
 
