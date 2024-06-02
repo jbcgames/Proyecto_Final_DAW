@@ -5,7 +5,8 @@ var nombreUsuarioField = document.querySelector('.NombreUsuario');
 var passwordField = document.querySelector('.Password');
 var confirmPasswordField = document.querySelector('.ConfirmPassword');
 var registerButton = document.querySelector('.Registrar');
-registerButton.style.backgroundColor="#8C8C8C";
+registerButton.style.backgroundColor = "#8C8C8C";
+
 function checkPasswords() {
     var nombre = nombreField.value;
     var apellido = apellidoField.value;
@@ -14,12 +15,14 @@ function checkPasswords() {
     var password = passwordField.value;
     var confirmPassword = confirmPasswordField.value;
 
-    if (password !== confirmPassword || !nombre || !apellido || !fechaNacimiento || !nombreUsuario || !password) {
-        registerButton.style.backgroundColor="#8C8C8C";
+    var regex = /^[a-zA-Z0-9]+$/;
+
+    if (password !== confirmPassword || !nombre || !apellido || !fechaNacimiento || !nombreUsuario || !password || !regex.test(nombreUsuario) || !regex.test(password)) {
+        registerButton.style.backgroundColor = "#8C8C8C";
     } else if (password.length < 8 || nombreUsuario.length < 8) {
-        registerButton.style.backgroundColor="#8C8C8C";
+        registerButton.style.backgroundColor = "#8C8C8C";
     } else {
-        registerButton.style.backgroundColor="#4CAF50";
+        registerButton.style.backgroundColor = "#4CAF50";
     }
 }
 
@@ -38,22 +41,24 @@ registerButton.addEventListener('click', function() {
     var password = passwordField.value;
     var confirmPassword = confirmPasswordField.value;
 
+
+    var regex = /^[a-zA-Z0-9]+$/;
+
     if (!nombre || !apellido || !fechaNacimiento || !nombreUsuario || !password) {
         alert('Completa todos los campos');
         return;
-    }else if(password !== confirmPassword ){
+    } else if (password !== confirmPassword) {
         alert('Las Contraseñas no coinciden');
         return;
-    } 
-    else if (nombreUsuario.length < 8) {
-        alert('El Nombre de usuario deben tener al menos 8 caracteres');
+    } else if (nombreUsuario.length < 8 || password.length < 8) {
+        alert('El Nombre de usuario y la Contraseña deben tener al menos 8 caracteres');
         return;
-    }else if(password.length < 8  ){
-        alert('La Contraseña deben tener al menos 8 caracteres');
+    } else if (!regex.test(nombreUsuario) || !regex.test(password)) {
+        alert('El Nombre de usuario y la Contraseña no pueden contener caracteres especiales');
         return;
     }
 
-    // Verificar si el nombre de usuario ya existe
+
     fetch(`http://localhost:8080/Usuario?nombreUsuario=${nombreUsuario}`, {
         method: 'GET',
         headers: {
@@ -62,7 +67,7 @@ registerButton.addEventListener('click', function() {
     })
     .then(response => {
         if (response.status === 404) {
-            // Si el nombre de usuario no existe, proceder con la solicitud POST
+
             var data = {
                 nombre: nombre,
                 apellido: apellido,
@@ -86,10 +91,10 @@ registerButton.addEventListener('click', function() {
             alert('Registro Creado Exitosamente')
             window.location.href = 'index.html';
         } else if (response.ok) {
-            // Si la respuesta es exitosa, eso significa que el nombre de usuario ya existe
+
             alert('El nombre de usuario ya existe');
         } else {
-            // Manejar otros códigos de estado
+
             console.error('Error:', response.status);
         }
     })

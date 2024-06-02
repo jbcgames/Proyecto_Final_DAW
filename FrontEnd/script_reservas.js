@@ -1,4 +1,4 @@
-// Primero, obtén referencias a las secciones y los botones
+
 var urlParams = new URLSearchParams(window.location.search);
 var nombreUsuario = urlParams.get('nombreUsuario');
 var Nombre = document.querySelector('.saludo')
@@ -34,7 +34,7 @@ seccionReservar.style.display = 'block';
 seccionReservas2.style.display = 'none';
 seccionPrecioTotal.style.display = 'none';
 seccionVerReservas.style.display = 'none';
-// Luego, agrega controladores de eventos a los botones
+
 botonReservar.addEventListener("click", () => {
     seccionReservar.style.display = 'block';
     seccionReservas2.style.display = 'none';
@@ -86,7 +86,7 @@ function VerReservas(){
             })
             .then(response => response.json())
             .then(autoData => {
-                var auto = autoData[0]; // Asumiendo que autoData es un array y estamos interesados en el primer elemento
+                var auto = autoData[0];
                 var reservaDiv = document.createElement('div');
                 reservaDiv.className = 'reserva1';
 
@@ -101,7 +101,7 @@ function VerReservas(){
 
                 var autoNombreReserva = document.createElement('p');
                 autoNombreReserva.className = 'nombre-vehiculo';
-                autoNombreReserva.textContent = `Nombre del Auto: ${auto.nombre}`; // Aquí se cambió el ID del auto por el nombre del auto
+                autoNombreReserva.textContent = `Nombre del Auto: ${auto.nombre}`;
                 infoReserva.appendChild(autoNombreReserva);
 
                 var segurosReserva = document.createElement('p');
@@ -141,12 +141,10 @@ function VerReservas(){
                     })
                     .then(response => {
                         if (response.ok) {
-                            // Primero, elimina la reserva
                             reservaDiv.remove();
                             alert('Reserva eliminada exitosamente');
                             VerReservas();
                 
-                            // Luego, actualiza la disponibilidad del auto a true
                             fetch(`http://localhost:8080/Autos`, {
                                 method: 'POST',
                                 headers: {
@@ -190,25 +188,25 @@ botonVerReservas.addEventListener("click", VerReservas)
 botonBusqueda.addEventListener("click", mibotonBusqueda);
 
 function mibotonBusqueda() {
-    // Eliminar reservas anteriores
     var reservas = document.querySelectorAll('.reserva');
     reservas.forEach(reserva => reserva.remove());
 
-    // Eliminar div anterior si existe
     var divAnterior = document.querySelector('.reserva-sup');
     if (divAnterior) {
         divAnterior.remove();
     }
 
-    // Obtener criterio y valor de búsqueda
     var criterio = document.querySelector('.tipo-busqueda').value;
     var valor = document.querySelector('.campo-busqueda').value;
 
-    // Construir URL para la petición GET
+    valor = valor.toLowerCase().split(' ').map(function(palabra) {
+        return palabra.charAt(0).toUpperCase() + palabra.slice(1);
+    }).join(' ');
+
     var url = `http://localhost:8080/Autos?${criterio}=${valor}`;
     console.log(url);
 
-    // Realizar la petición GET
+
     fetch(url, {
         method: 'GET',
         headers: {
@@ -217,7 +215,7 @@ function mibotonBusqueda() {
     })
     .then(response => response.json())
     .then(data => {
-        // Verificar si hay datos y si hay autos disponibles
+
         if (data == null || data.length === 0) {
             alert('No hay autos disponibles que cumplan con el criterio de búsqueda.');
             return;
@@ -228,7 +226,7 @@ function mibotonBusqueda() {
             return;
         }
 
-        // Crear y mostrar elementos para cada auto disponible
+
         autosDisponibles.forEach(auto => {
             var reservaDiv = document.createElement('div');
             reservaDiv.className = 'reserva';
@@ -284,38 +282,38 @@ function obtenerNombreCarro(autoId) {
         .then(data => data[0].nombre);
 }
 
-// Función para consultar el endpoint /Informe y organizar los resultados en HTML
+
 function rellenarConPuntos(nombreVehiculo, precioVehiculo) {
-    // Obtener la resolución de la ventana del navegador
+
     const anchoPantalla = window.innerWidth;
     const altoPantalla = window.innerHeight;
 
-    // Definir maxLongitud en función de la resolución
+
     let maxLongitud = Math.round(anchoPantalla / 7.2);
 
-    // Convertir precioVehiculo a cadena para obtener la longitud correcta
+
     const precioVehiculoStr = precioVehiculo.toString();
     const longitudActual = nombreVehiculo.length + precioVehiculoStr.length;
     const longitudPuntos = maxLongitud - longitudActual;
     return '.'.repeat(longitudPuntos > 0 ? longitudPuntos : 0);
 }
 
-// Función para consultar el endpoint /Informe y organizar los resultados en HTML
+
 function consultarInforme(usuario) {
     let costoTotal = 0;
     const contenedorResultados = document.querySelector('.precio-total');
-    contenedorResultados.innerHTML = ''; // Limpiar resultados anteriores
+    contenedorResultados.innerHTML = '';
     fetch(`http://localhost:8080/Informe?usuario=${usuario}`)
         .then(response => response.json())
         .then(reservas => {
             
             
-            // Crear un array de promesas para cada reserva
+
             const promesas = reservas.map(reserva => {
                 return obtenerNombreCarro(reserva.auto_id).then(nombreCarro => {
                     const precioVehiculo = reserva.precio_final;
                     const puntos = rellenarConPuntos(nombreCarro, precioVehiculo);
-                    // Crear el HTML para cada línea de precio
+  
                     const lineaPrecio = document.createElement('div');
                     lineaPrecio.className = 'linea-precio';
                     lineaPrecio.innerHTML = `
@@ -328,7 +326,7 @@ function consultarInforme(usuario) {
                 });
             });
 
-            // Esperar a que todas las promesas se resuelvan
+
             Promise.all(promesas).then(() => {
                 const lineaTotal = document.createElement('div');
                 lineaTotal.className = 'linea-precio';
@@ -356,13 +354,13 @@ function tuFuncion(idAuto) {
     var url = `http://localhost:8080/Autos?id=${idAuto}`;
     console.log(url);
 
-    // Eliminar la reserva anterior si existe
+
     var divAnterior = document.querySelector('.reserva-sup');
     if (divAnterior) {
         divAnterior.remove();
     }
 
-    // Realizar la petición GET para obtener los detalles del auto
+
     fetch(url, {
         method: 'GET',
         headers: {
@@ -375,7 +373,7 @@ function tuFuncion(idAuto) {
         var imagen = data[0].imagen_link;
         var precio = data[0].precio;
 
-        // Crear y añadir la sección de reserva
+
         var reserva = document.createElement('div');
         reserva.className = 'reserva-sup';
         reserva.style.zIndex = '1000';
@@ -404,7 +402,7 @@ function tuFuncion(idAuto) {
         var seccionDerecha = document.createElement('div');
         seccionDerecha.className = 'seccion-derecha';
 
-        // Crear y añadir los checkboxes
+
         var opciones = ['Seguros', 'Asistencia en carretera', 'Silla para bebés', 'Equipo de lujo'];
         var contenedorOpciones = document.createElement('div');
         contenedorOpciones.className = 'contenedor-opciones';
@@ -427,10 +425,10 @@ function tuFuncion(idAuto) {
             label.htmlFor = opcion;
             label.appendChild(document.createTextNode(opcion));
 
-            // Agregar evento de escucha al checkbox
+
             checkbox.addEventListener('change', function() {
                 estadoReserva[opcion.toLowerCase().replace(/ /g, '')] = this.checked;
-                // Actualizar el precio total
+
                 var precioTotal = calcularPrecioTotal(precio, estadoReserva, opciones.length);
                 precioVehiculo.textContent = `Precio: $${precioTotal}`;
             });
@@ -441,14 +439,14 @@ function tuFuncion(idAuto) {
 
         seccionDerecha.appendChild(contenedorOpciones);
 
-        // Crear y añadir el botón para quitar la reservación
+
         var botonQuitar = document.createElement('button');
         botonQuitar.className = 'boton-quitar';
         botonQuitar.textContent = 'Confirmar Reservación';
         botonQuitar.addEventListener('click', function() {
-            // Crear el objeto de la reservación
+
             const reserva = {
-                usuario: nombreUsuario, // Asegúrate de tener esta variable definida en tu código
+                usuario: nombreUsuario,
                 auto_id: idAuto,
                 seguros: estadoReserva.seguros,
                 asistencia_carretera: estadoReserva.asistenciaCarretera,
@@ -457,7 +455,7 @@ function tuFuncion(idAuto) {
                 precio_final: precio
             };
 
-            // Realizar la petición POST para agregar la reservación
+
             fetch('http://localhost:8080/Reservas', {
                 method: 'POST',
                 headers: {
@@ -470,7 +468,7 @@ function tuFuncion(idAuto) {
                 console.log(data);
                 
 
-                // Cambiar el estado de disponibilidad del auto a no disponible
+
                 fetch(`http://localhost:8080/Autos`, {
                     method: 'POST',
                     headers: {
@@ -483,13 +481,13 @@ function tuFuncion(idAuto) {
                     console.error('Error:', error);
                 });
 
-                // Eliminar la interfaz de la reservación
+
                 var divAnterior = document.querySelector('.reserva-sup');
                 if (divAnterior) {
                     divAnterior.remove();
                 }
                 alert('Reserva Agregada');
-                mibotonBusqueda(); // Actualizar la lista de autos
+                mibotonBusqueda(); 
             })
             .catch((error) => {
                 console.error('Error:', error);
@@ -506,7 +504,7 @@ function tuFuncion(idAuto) {
     });
 }
 
-// Función auxiliar para calcular el precio total
+
 function calcularPrecioTotal(precioBase, estadoReserva, numOpciones) {
     var incremento = precioBase * 0.1;
     var precioTotal = precioBase;
@@ -523,11 +521,11 @@ function descargarComoTxt() {
     let contenido = '';
     const lineasPrecio = contenedorResultados.querySelectorAll('.linea-precio');
 
-    // Construir el contenido con el formato deseado
+
     lineasPrecio.forEach((linea, index) => {
         const nombreVehiculo = linea.querySelector('.nombre-vehiculo').textContent.trim();
         const precioVehiculo = linea.querySelector('.precio-vehiculo').textContent.trim();
-        // Para la última línea, que es el Precio Total, no agregar el salto de línea al final
+
         if (index === lineasPrecio.length - 1) {
             contenido += `${nombreVehiculo}: ${precioVehiculo}`;
         } else {
@@ -550,7 +548,7 @@ function agregarBotonDescarga() {
     const contenedorResultados = document.querySelector('.precio-total');
     const botonDescarga = document.createElement('button');
     botonDescarga.textContent = 'Descargar Informe';
-    botonDescarga.className = 'botonDescargar'; // Agregar la clase al botón
+    botonDescarga.className = 'botonDescargar'; 
     botonDescarga.onclick = descargarComoTxt;
     contenedorResultados.appendChild(botonDescarga);
 }
