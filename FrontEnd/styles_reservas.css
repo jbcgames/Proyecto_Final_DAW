@@ -131,7 +131,7 @@ header {
     margin-bottom: 10px;
 }
 
-.boton-quitar {
+.boton-quitar, .botonDescargar{
     padding: 10px;
     border: none;
     border-radius: 5px;

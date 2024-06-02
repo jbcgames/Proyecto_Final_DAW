@@ -17,6 +17,13 @@ type Usuario struct {
 	NombreUsuario   string `json:"nombreUsuario"`
 	Password        string `json:"password"`
 }
+
+// Estructura para los resultados con etiquetas JSON
+var resultados []struct {
+	AutoID      int `json:"auto_id"`
+	PrecioFinal int `json:"precio_final"`
+}
+
 type Reserva struct {
 	ID                  int    `json:"id"`
 	Usuario             string `json:"usuario"`
@@ -30,6 +37,7 @@ type Reserva struct {
 
 type Auto struct {
 	ID          int    `json:"id"`
+	Disponible  bool   `json:"disponible"`
 	Nombre      string `json:"nombre"`
 	Tipo        string `json:"tipo"`
 	Color       string `json:"color"`
@@ -170,7 +178,7 @@ func main() {
 			var autos []Auto
 			for rows.Next() {
 				var a Auto
-				err = rows.Scan(&a.ID, &a.Nombre, &a.Tipo, &a.Color, &a.Modelo, &a.Marca, &a.Transmision, &a.Motor, &a.Precio, &a.ImagenLink)
+				err = rows.Scan(&a.ID, &a.Disponible, &a.Nombre, &a.Tipo, &a.Color, &a.Modelo, &a.Marca, &a.Transmision, &a.Motor, &a.Precio, &a.ImagenLink)
 				if err != nil {
 					http.Error(w, "Error scanning row", http.StatusInternalServerError)
 					return
@@ -180,6 +188,34 @@ func main() {
 
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(autos)
+		case http.MethodPost:
+			// Parsear el cuerpo de la solicitud para obtener los datos del auto
+			var auto Auto
+			err := json.NewDecoder(r.Body).Decode(&auto)
+			if err != nil {
+				http.Error(w, "Error al decodificar el cuerpo de la solicitud", http.StatusBadRequest)
+				return
+			}
+
+			// Preparar la sentencia SQL para actualizar la disponibilidad del auto
+			stmt, err := db.Prepare("UPDATE autos SET disponible = $1 WHERE id = $2")
+			if err != nil {
+				http.Error(w, "Error al preparar la consulta", http.StatusInternalServerError)
+				return
+			}
+			defer stmt.Close()
+
+			// Ejecutar la sentencia SQL con los datos proporcionados
+			_, err = stmt.Exec(auto.Disponible, auto.ID)
+			if err != nil {
+				http.Error(w, "Error al actualizar la base de datos", http.StatusInternalServerError)
+				return
+			}
+
+			// Enviar una respuesta de éxito
+			w.WriteHeader(http.StatusOK)
+			fmt.Fprintln(w, "Auto actualizado con éxito")
+
 		default:
 			// Manejar otros métodos
 			http.Error(w, "Método no soportado", http.StatusMethodNotAllowed)
@@ -256,6 +292,59 @@ func main() {
 			// Manejar otros métodos
 			http.Error(w, "Método no soportado", http.StatusMethodNotAllowed)
 		}
+	})
+	http.HandleFunc("/Informe", func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET")
+		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+
+		if req.Method == http.MethodOptions {
+			return
+		}
+
+		if req.Method != http.MethodGet {
+			http.Error(w, "Método no soportado", http.StatusMethodNotAllowed)
+			return
+		}
+
+		// Manejar método GET
+		usuario := req.URL.Query().Get("usuario")
+		if usuario == "" {
+			http.Error(w, "Usuario no proporcionado", http.StatusBadRequest)
+			return
+		}
+
+		// Consulta SQL modificada para seleccionar solo auto_id y precio_final
+		rows, err := db.Query("SELECT auto_id, precio_final FROM reservas WHERE usuario = $1", usuario)
+		if err != nil {
+			http.Error(w, "Error al consultar la base de datos", http.StatusInternalServerError)
+			return
+		}
+		defer rows.Close()
+
+		// Estructura para los resultados
+		var resultados []struct {
+			AutoID      int `json:"auto_id"`
+			PrecioFinal int `json:"precio_final"`
+		}
+
+		// Escanear y almacenar los resultados
+		for rows.Next() {
+			var r struct {
+				AutoID      int `json:"auto_id"`
+				PrecioFinal int `json:"precio_final"`
+			}
+			err = rows.Scan(&r.AutoID, &r.PrecioFinal)
+			if err != nil {
+				http.Error(w, "Error al escanear la fila", http.StatusInternalServerError)
+				return
+			}
+			resultados = append(resultados, r)
+		}
+
+		// Establecer el tipo de contenido y enviar la respuesta
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(resultados)
 	})
 
 	http.ListenAndServe(":8080", nil)
