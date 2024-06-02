@@ -1,14 +1,15 @@
 package handlers
 
 import (
-	"BackEnd/internal/models"
-	"BackEnd/internal/service"
 	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/jbcgames/Proyecto_Final_DAW/BackEnd/internal/models"
+	"github.com/jbcgames/Proyecto_Final_DAW/BackEnd/internal/service"
 )
 
 func UsuarioHandler(db *sql.DB) http.HandlerFunc {

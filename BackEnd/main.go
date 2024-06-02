@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/jbcgames/Proyecto_Final_DAW/BackEnd/internal/handlers"
+
 	_ "github.com/lib/pq"
 )
 

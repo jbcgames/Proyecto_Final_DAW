@@ -2,6 +2,9 @@ package service
 
 import (
 	"database/sql"
+
+	"github.com/jbcgames/Proyecto_Final_DAW/BackEnd/internal/models"
+	"github.com/jbcgames/Proyecto_Final_DAW/BackEnd/internal/repository"
 )
 
 func GetUsuario(db *sql.DB, nombreUsuario string) (*models.Usuario, error) {

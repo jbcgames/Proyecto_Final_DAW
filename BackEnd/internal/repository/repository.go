@@ -2,6 +2,8 @@ package repository
 
 import (
 	"database/sql"
+
+	"github.com/jbcgames/Proyecto_Final_DAW/BackEnd/internal/models"
 )
 
 func GetUsuario(db *sql.DB, nombreUsuario string) (*models.Usuario, error) {
