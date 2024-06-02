@@ -2,29 +2,42 @@ package repository
 
 import (
 	"database/sql"
+	"fmt"
+	"strings"
 
-	"github.com/jbcgames/Proyecto_Final_DAW/BackEnd/internal/models"
+	"github.com/jbcgames/Proyecto_Final_DAW/internal/models"
 )
 
-func GetUsuario(db *sql.DB, nombreUsuario string) (*models.Usuario, error) {
-	query := `SELECT * FROM usuarios WHERE nombreUsuario=$1`
-	row := db.QueryRow(query, nombreUsuario)
-
+func GetUsuario(db *sql.DB, nombreUsuario string) (models.Usuario, error) {
 	var u models.Usuario
-	err := row.Scan(&u.ID, &u.Nombre, &u.Apellido, &u.FechaNacimiento, &u.NombreUsuario, &u.Password)
-	if err != nil {
-		return nil, err
-	}
-	return &u, nil
+	row := db.QueryRow("SELECT nombre, apellido, fecha_nacimiento, password FROM usuarios WHERE nombre_usuario = $1", nombreUsuario)
+	err := row.Scan(&u.Nombre, &u.Apellido, &u.FechaNacimiento, &u.Password)
+	return u, err
 }
 
-func RegistrarUsuario(db *sql.DB, u models.Usuario) error {
-	query := `INSERT INTO usuarios (nombre, apellido, fechaNacimiento, nombreUsuario, password) VALUES ($1, $2, $3, $4, $5)`
-	_, err := db.Exec(query, u.Nombre, u.Apellido, u.FechaNacimiento, u.NombreUsuario, u.Password)
+func CreateUsuario(db *sql.DB, u models.Usuario) error {
+	_, err := db.Exec("INSERT INTO usuarios (nombre, apellido, fecha_nacimiento, nombre_usuario, password) VALUES ($1, $2, $3, $4, $5)",
+		u.Nombre, u.Apellido, u.FechaNacimiento, u.NombreUsuario, u.Password)
 	return err
 }
 
-func ListarAutos(db *sql.DB, queryStr string, params []interface{}) ([]models.Auto, error) {
+func GetAutos(db *sql.DB, queryValues map[string][]string) ([]models.Auto, error) {
+	queryStr := "SELECT * FROM autos"
+	params := []interface{}{}
+
+	if len(queryValues) > 0 {
+		filters := []string{}
+		for key, value := range queryValues {
+			if key == "precio" {
+				filters = append(filters, fmt.Sprintf("%s < $%d", key, len(params)+1))
+			} else {
+				filters = append(filters, fmt.Sprintf("%s = $%d", key, len(params)+1))
+			}
+			params = append(params, value[0])
+		}
+		queryStr += " WHERE " + strings.Join(filters, " AND ")
+	}
+
 	rows, err := db.Query(queryStr, params...)
 	if err != nil {
 		return nil, err
@@ -33,25 +46,29 @@ func ListarAutos(db *sql.DB, queryStr string, params []interface{}) ([]models.Au
 
 	var autos []models.Auto
 	for rows.Next() {
-		var auto models.Auto
-		err := rows.Scan(&auto.ID, &auto.Marca, &auto.Modelo, &auto.Anio, &auto.Precio, &auto.Disponible)
+		var a models.Auto
+		err = rows.Scan(&a.ID, &a.Disponible, &a.Nombre, &a.Tipo, &a.Color, &a.Modelo, &a.Marca, &a.Transmision, &a.Motor, &a.Precio, &a.ImagenLink)
 		if err != nil {
 			return nil, err
 		}
-		autos = append(autos, auto)
+		autos = append(autos, a)
 	}
 	return autos, nil
 }
 
-func ActualizarDisponibilidadAuto(db *sql.DB, id int, disponible bool) error {
-	query := `UPDATE autos SET disponible=$1 WHERE id=$2`
-	_, err := db.Exec(query, disponible, id)
+func UpdateAutoDisponibilidad(db *sql.DB, auto models.Auto) error {
+	stmt, err := db.Prepare("UPDATE autos SET disponible = $1 WHERE id = $2")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(auto.Disponible, auto.ID)
 	return err
 }
 
-func ListarReservas(db *sql.DB, usuario string) ([]models.Reserva, error) {
-	query := `SELECT * FROM reservas WHERE usuario=$1`
-	rows, err := db.Query(query, usuario)
+func GetReservas(db *sql.DB, usuario string) ([]models.Reserva, error) {
+	rows, err := db.Query("SELECT * FROM reservas WHERE usuario = $1", usuario)
 	if err != nil {
 		return nil, err
 	}
@@ -59,56 +76,52 @@ func ListarReservas(db *sql.DB, usuario string) ([]models.Reserva, error) {
 
 	var reservas []models.Reserva
 	for rows.Next() {
-		var reserva models.Reserva
-		err := rows.Scan(&reserva.ID, &reserva.Usuario, &reserva.AutoID, &reserva.FechaIni, &reserva.FechaFin, &reserva.Total)
+		var r models.Reserva
+		err = rows.Scan(&r.ID, &r.Usuario, &r.AutoID, &r.Seguros, &r.AsistenciaCarretera, &r.SillaBebes, &r.EquipoLujo, &r.PrecioFinal)
 		if err != nil {
 			return nil, err
 		}
-		reservas = append(reservas, reserva)
+		reservas = append(reservas, r)
 	}
 	return reservas, nil
 }
 
-func CrearReserva(db *sql.DB, r models.Reserva) error {
-	query := `INSERT INTO reservas (usuario, auto_id, fecha_ini, fecha_fin, total) VALUES ($1, $2, $3, $4, $5)`
-	_, err := db.Exec(query, r.Usuario, r.AutoID, r.FechaIni, r.FechaFin, r.Total)
+func CreateReserva(db *sql.DB, r models.Reserva) error {
+	_, err := db.Exec("INSERT INTO reservas (usuario, auto_id, seguros, asistencia_carretera, silla_bebes, equipo_lujo, precio_final) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+		r.Usuario, r.AutoID, r.Seguros, r.AsistenciaCarretera, r.SillaBebes, r.EquipoLujo, r.PrecioFinal)
 	return err
 }
 
-func EliminarReserva(db *sql.DB, id int) error {
-	query := `DELETE FROM reservas WHERE id=$1`
-	_, err := db.Exec(query, id)
+func DeleteReserva(db *sql.DB, id string) error {
+	_, err := db.Exec("DELETE FROM reservas WHERE id = $1", id)
 	return err
 }
 
-func ObtenerInforme(db *sql.DB, usuario string) ([]map[string]interface{}, error) {
-	query := `SELECT autos.marca, autos.modelo, autos.anio, reservas.fecha_ini, reservas.fecha_fin 
-			  FROM reservas 
-			  JOIN autos ON reservas.auto_id = autos.id 
-			  WHERE reservas.usuario=$1`
-	rows, err := db.Query(query, usuario)
+func GetInforme(db *sql.DB, usuario string) ([]struct {
+	AutoID      int `json:"auto_id"`
+	PrecioFinal int `json:"precio_final"`
+}, error) {
+	rows, err := db.Query("SELECT auto_id, precio_final FROM reservas WHERE usuario = $1", usuario)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var resultados []map[string]interface{}
+	var resultados []struct {
+		AutoID      int `json:"auto_id"`
+		PrecioFinal int `json:"precio_final"`
+	}
+
 	for rows.Next() {
-		var marca, modelo string
-		var anio int
-		var fechaIni, fechaFin string
-		err := rows.Scan(&marca, &modelo, &anio, &fechaIni, &fechaFin)
+		var r struct {
+			AutoID      int `json:"auto_id"`
+			PrecioFinal int `json:"precio_final"`
+		}
+		err = rows.Scan(&r.AutoID, &r.PrecioFinal)
 		if err != nil {
 			return nil, err
 		}
-		resultado := map[string]interface{}{
-			"marca":    marca,
-			"modelo":   modelo,
-			"anio":     anio,
-			"fechaIni": fechaIni,
-			"fechaFin": fechaFin,
-		}
-		resultados = append(resultados, resultado)
+		resultados = append(resultados, r)
 	}
 	return resultados, nil
 }

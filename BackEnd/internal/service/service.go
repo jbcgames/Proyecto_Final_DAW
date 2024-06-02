@@ -2,39 +2,43 @@ package service
 
 import (
 	"database/sql"
+	"net/url"
 
-	"github.com/jbcgames/Proyecto_Final_DAW/BackEnd/internal/models"
-	"github.com/jbcgames/Proyecto_Final_DAW/BackEnd/internal/repository"
+	"github.com/jbcgames/Proyecto_Final_DAW/internal/models"
+	"github.com/jbcgames/Proyecto_Final_DAW/internal/repository"
 )
 
-func GetUsuario(db *sql.DB, nombreUsuario string) (*models.Usuario, error) {
+func GetUsuario(db *sql.DB, nombreUsuario string) (models.Usuario, error) {
 	return repository.GetUsuario(db, nombreUsuario)
 }
 
-func RegistrarUsuario(db *sql.DB, u models.Usuario) error {
-	return repository.RegistrarUsuario(db, u)
+func CreateUsuario(db *sql.DB, u models.Usuario) error {
+	return repository.CreateUsuario(db, u)
 }
 
-func ListarAutos(db *sql.DB, queryStr string, params []interface{}) ([]models.Auto, error) {
-	return repository.ListarAutos(db, queryStr, params)
+func GetAutos(db *sql.DB, queryValues url.Values) ([]models.Auto, error) {
+	return repository.GetAutos(db, queryValues)
 }
 
-func ActualizarDisponibilidadAuto(db *sql.DB, id int, disponible bool) error {
-	return repository.ActualizarDisponibilidadAuto(db, id, disponible)
+func UpdateAutoDisponibilidad(db *sql.DB, auto models.Auto) error {
+	return repository.UpdateAutoDisponibilidad(db, auto)
 }
 
-func ListarReservas(db *sql.DB, usuario string) ([]models.Reserva, error) {
-	return repository.ListarReservas(db, usuario)
+func GetReservas(db *sql.DB, usuario string) ([]models.Reserva, error) {
+	return repository.GetReservas(db, usuario)
 }
 
-func CrearReserva(db *sql.DB, r models.Reserva) error {
-	return repository.CrearReserva(db, r)
+func CreateReserva(db *sql.DB, r models.Reserva) error {
+	return repository.CreateReserva(db, r)
 }
 
-func EliminarReserva(db *sql.DB, id int) error {
-	return repository.EliminarReserva(db, id)
+func DeleteReserva(db *sql.DB, id string) error {
+	return repository.DeleteReserva(db, id)
 }
 
-func ObtenerInforme(db *sql.DB, usuario string) ([]map[string]interface{}, error) {
-	return repository.ObtenerInforme(db, usuario)
+func GetInforme(db *sql.DB, usuario string) ([]struct {
+	AutoID      int `json:"auto_id"`
+	PrecioFinal int `json:"precio_final"`
+}, error) {
+	return repository.GetInforme(db, usuario)
 }

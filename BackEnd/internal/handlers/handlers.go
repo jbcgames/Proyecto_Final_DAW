@@ -5,14 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
-	"strings"
 
-	"github.com/jbcgames/Proyecto_Final_DAW/BackEnd/internal/models"
-	"github.com/jbcgames/Proyecto_Final_DAW/BackEnd/internal/service"
+	"github.com/jbcgames/Proyecto_Final_DAW/internal/models"
+	"github.com/jbcgames/Proyecto_Final_DAW/internal/service"
 )
 
-func UsuarioHandler(db *sql.DB) http.HandlerFunc {
+func HandleUsuario(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
@@ -30,7 +28,7 @@ func UsuarioHandler(db *sql.DB) http.HandlerFunc {
 				return
 			}
 
-			u, err := service.GetUsuario(db, nombreUsuario)
+			usuario, err := service.GetUsuario(db, nombreUsuario)
 			if err != nil {
 				if err == sql.ErrNoRows {
 					http.Error(w, "Usuario no encontrado", http.StatusNotFound)
@@ -41,14 +39,14 @@ func UsuarioHandler(db *sql.DB) http.HandlerFunc {
 			}
 
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(u)
+			json.NewEncoder(w).Encode(usuario)
 		default:
 			http.Error(w, "Método no soportado", http.StatusMethodNotAllowed)
 		}
 	}
 }
 
-func RegistroHandler(db *sql.DB) http.HandlerFunc {
+func HandleRegistro(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
@@ -76,7 +74,7 @@ func RegistroHandler(db *sql.DB) http.HandlerFunc {
 				http.Error(w, "Error reading request body", http.StatusInternalServerError)
 				return
 			}
-			err = service.RegistrarUsuario(db, u)
+			err = service.CreateUsuario(db, u)
 			if err != nil {
 				http.Error(w, "Error inserting data into the database", http.StatusInternalServerError)
 				return
@@ -89,7 +87,7 @@ func RegistroHandler(db *sql.DB) http.HandlerFunc {
 	}
 }
 
-func AutosHandler(db *sql.DB) http.HandlerFunc {
+func HandleAutos(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
@@ -102,28 +100,11 @@ func AutosHandler(db *sql.DB) http.HandlerFunc {
 		switch r.Method {
 		case http.MethodGet:
 			queryValues := r.URL.Query()
-			queryStr := "SELECT * FROM autos"
-			params := []interface{}{}
-
-			if len(queryValues) > 0 {
-				filters := []string{}
-				for key, value := range queryValues {
-					if key == "precio" {
-						filters = append(filters, fmt.Sprintf("%s < $%d", key, len(params)+1))
-					} else {
-						filters = append(filters, fmt.Sprintf("%s = $%d", key, len(params)+1))
-					}
-					params = append(params, value[0])
-				}
-				queryStr += " WHERE " + strings.Join(filters, " AND ")
-			}
-
-			autos, err := service.ListarAutos(db, queryStr, params)
+			autos, err := service.GetAutos(db, queryValues)
 			if err != nil {
 				http.Error(w, "Error querying the database", http.StatusInternalServerError)
 				return
 			}
-
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(autos)
 		case http.MethodPost:
@@ -133,13 +114,11 @@ func AutosHandler(db *sql.DB) http.HandlerFunc {
 				http.Error(w, "Error al decodificar el cuerpo de la solicitud", http.StatusBadRequest)
 				return
 			}
-
-			err = service.ActualizarDisponibilidadAuto(db, auto.ID, auto.Disponible)
+			err = service.UpdateAutoDisponibilidad(db, auto)
 			if err != nil {
 				http.Error(w, "Error al actualizar la base de datos", http.StatusInternalServerError)
 				return
 			}
-
 			w.WriteHeader(http.StatusOK)
 			fmt.Fprintln(w, "Auto actualizado con éxito")
 		default:
@@ -148,7 +127,7 @@ func AutosHandler(db *sql.DB) http.HandlerFunc {
 	}
 }
 
-func ReservasHandler(db *sql.DB) http.HandlerFunc {
+func HandleReservas(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, DELETE, OPTIONS")
@@ -165,13 +144,11 @@ func ReservasHandler(db *sql.DB) http.HandlerFunc {
 				http.Error(w, "Usuario no proporcionado", http.StatusBadRequest)
 				return
 			}
-
-			reservas, err := service.ListarReservas(db, usuario)
+			reservas, err := service.GetReservas(db, usuario)
 			if err != nil {
 				http.Error(w, "Error al consultar la base de datos", http.StatusInternalServerError)
 				return
 			}
-
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(reservas)
 		case http.MethodPost:
@@ -181,7 +158,7 @@ func ReservasHandler(db *sql.DB) http.HandlerFunc {
 				http.Error(w, "Error al leer el cuerpo de la solicitud", http.StatusInternalServerError)
 				return
 			}
-			err = service.CrearReserva(db, r)
+			err = service.CreateReserva(db, r)
 			if err != nil {
 				http.Error(w, "Error al insertar datos en la base de datos", http.StatusInternalServerError)
 				return
@@ -189,19 +166,12 @@ func ReservasHandler(db *sql.DB) http.HandlerFunc {
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(r)
 		case http.MethodDelete:
-			idStr := req.URL.Query().Get("id")
-			if idStr == "" {
+			id := req.URL.Query().Get("id")
+			if id == "" {
 				http.Error(w, "ID no proporcionado", http.StatusBadRequest)
 				return
 			}
-
-			id, err := strconv.Atoi(idStr)
-			if err != nil {
-				http.Error(w, "ID inválido", http.StatusBadRequest)
-				return
-			}
-
-			err = service.EliminarReserva(db, id)
+			err := service.DeleteReserva(db, id)
 			if err != nil {
 				http.Error(w, "Error al eliminar la fila en la base de datos", http.StatusInternalServerError)
 				return
@@ -213,7 +183,7 @@ func ReservasHandler(db *sql.DB) http.HandlerFunc {
 	}
 }
 
-func InformeHandler(db *sql.DB) http.HandlerFunc {
+func HandleInforme(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET")
@@ -234,13 +204,13 @@ func InformeHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		resultados, err := service.ObtenerInforme(db, usuario)
+		informe, err := service.GetInforme(db, usuario)
 		if err != nil {
 			http.Error(w, "Error al consultar la base de datos", http.StatusInternalServerError)
 			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resultados)
+		json.NewEncoder(w).Encode(informe)
 	}
 }

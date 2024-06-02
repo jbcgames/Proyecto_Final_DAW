@@ -1,7 +1,6 @@
 package models
 
 type Usuario struct {
-	ID              int    `json:"id"`
 	Nombre          string `json:"nombre"`
 	Apellido        string `json:"apellido"`
 	FechaNacimiento string `json:"fechaNacimiento"`
@@ -9,20 +8,27 @@ type Usuario struct {
 	Password        string `json:"password"`
 }
 
-type Auto struct {
-	ID         int     `json:"id"`
-	Marca      string  `json:"marca"`
-	Modelo     string  `json:"modelo"`
-	Anio       int     `json:"anio"`
-	Precio     float64 `json:"precio"`
-	Disponible bool    `json:"disponible"`
+type Reserva struct {
+	ID                  int    `json:"id"`
+	Usuario             string `json:"usuario"`
+	AutoID              int    `json:"auto_id"`
+	Seguros             bool   `json:"seguros"`
+	AsistenciaCarretera bool   `json:"asistencia_carretera"`
+	SillaBebes          bool   `json:"silla_bebes"`
+	EquipoLujo          bool   `json:"equipo_lujo"`
+	PrecioFinal         int    `json:"precio_final"`
 }
 
-type Reserva struct {
-	ID       int     `json:"id"`
-	Usuario  string  `json:"usuario"`
-	AutoID   int     `json:"auto_id"`
-	FechaIni string  `json:"fecha_ini"`
-	FechaFin string  `json:"fecha_fin"`
-	Total    float64 `json:"total"`
+type Auto struct {
+	ID          int    `json:"id"`
+	Disponible  bool   `json:"disponible"`
+	Nombre      string `json:"nombre"`
+	Tipo        string `json:"tipo"`
+	Color       string `json:"color"`
+	Modelo      string `json:"modelo"`
+	Marca       string `json:"marca"`
+	Transmision string `json:"transmision"`
+	Motor       string `json:"motor"`
+	Precio      int    `json:"precio"`
+	ImagenLink  string `json:"imagen_link"`
 }

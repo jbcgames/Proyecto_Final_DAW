@@ -1,25 +1,29 @@
-version: '3'
+version: '3.8'
+
 services:
-  db:
-    image: postgres:alpine
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=test_db
-    ports:
-      - 5432:5432
-    volumes:
-      - postgres-db:/var/lib/postgresql/data
-      - ./queries.sql:/docker-entrypoint-initdb.d/queries.sql
-  web:
+  app:
     build: .
     ports:
-      - 8080:8080
-    volumes:
-      - .:/app
-    command: go run main.go -b 0.0.0.0
+      - "8080:8080"
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=test_db
     depends_on:
       - db
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: test_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./queries.sql:/docker-entrypoint-initdb.d/queries.sql
 
 volumes:
-  postgres-db:
+  db_data:

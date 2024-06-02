@@ -5,28 +5,33 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
-	"github.com/jbcgames/Proyecto_Final_DAW/BackEnd/internal/handlers"
-
+	"github.com/jbcgames/Proyecto_Final_DAW/internal/handlers"
 	_ "github.com/lib/pq"
 )
 
-var db *sql.DB
-
 func main() {
 	var err error
-	psqlconn := fmt.Sprintf("host=db port=5432 user=%s password=%s dbname=%s sslmode=disable", "postgres", "postgres", "test_db")
-	db, err = sql.Open("postgres", psqlconn)
+
+	psqlconn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_NAME"))
+
+	db, err := sql.Open("postgres", psqlconn)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	defer db.Close()
 
-	http.HandleFunc("/Usuario", handlers.UsuarioHandler(db))
-	http.HandleFunc("/Registro", handlers.RegistroHandler(db))
-	http.HandleFunc("/Autos", handlers.AutosHandler(db))
-	http.HandleFunc("/Reservas", handlers.ReservasHandler(db))
-	http.HandleFunc("/Informe", handlers.InformeHandler(db))
+	http.HandleFunc("/Usuario", handlers.HandleUsuario(db))
+	http.HandleFunc("/Registro", handlers.HandleRegistro(db))
+	http.HandleFunc("/Autos", handlers.HandleAutos(db))
+	http.HandleFunc("/Reservas", handlers.HandleReservas(db))
+	http.HandleFunc("/Informe", handlers.HandleInforme(db))
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
